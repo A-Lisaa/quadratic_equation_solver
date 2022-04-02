@@ -1,25 +1,28 @@
 import re
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Tuple
 
 
 def normalize_equation(equation: str) -> str:
-    """Normalizes equation so other methods will be able work with it
+    """Нормализует выражение к стандарту, чтобы все функции работали с одним видом
+
     Args:
-        equation (str): equation to normailze
+        equation (str): выражение для нормализации
+
     Returns:
-        str: normalized equation
+        str: нормализованное выражение
     """
-    # We remove whitespaces to not have problems
-    # But we add a whitespace to the end so we can detect the end of an equation
+    # Удаляем пробелы, чтобы не иметь проблем из-за них
+    # Но нужно добавить 1 пробел в конец, чтобы определить конец выражения
+    # (возможно стоит заменить на \n, например)
     equation = equation.strip().replace(" ", "") + " "
-    # We remove * and ^ and replace , with . just so we will have something like x2 - 3.14x + 14 = 0, not x^2 - 3,14*x + 14 = 0 and it will be easier for us to use
+    # Удаляем * и ^ и заменяем , на . чтобы иметь одинаковый вид всех уравнений
     equation = equation.replace("*", "").replace("^", "").replace(",", ".")
-    # We add + to the beginning if there is no mark, so later we can easily check only if there is a - or +
+    # Добавляем + к первому коэффициенту, чтобы все коэф. имели знак
     if not equation.startswith(("+", "-")):
         equation = "+" + equation
-    # We change a variable name to x, so we don't have to fuck with different names
+    # Меняем имя переменной на x, чтобы оно всегда было одинаковое
     equation = "".join(("x" if character.isalpha() else character for character in equation))
-    # We add coefficient +-1 to anything with x if there is no coefficient, so every x will have its own coefficient
+    # Добавляем коэффициенты +-1, если коэф. нет, чтобы везде были коэф.
     equation = re.sub(r"\+x", "+1x", equation)
     equation = re.sub(r"\-x", "-1x", equation)
 
@@ -27,12 +30,14 @@ def normalize_equation(equation: str) -> str:
 
 
 def get_coefficient(pattern: str, equation: str) -> float:
-    """Gets one and only one coefficient of an equation w/o [=] (for example: gets coefficient of a)
+    """Получает один из коэф. выражения по паттерну
+
     Args:
-        pattern (str): pattern of a coefficient to get
-        equation (str): equation with coefficients
+        pattern (str): паттерн коэффициента, по которому его искать
+        equation (str): выражение, из которого взять коэф.
+
     Returns:
-        Decimal: sum of all coeficients in equation
+        float: коэффициент
     """
     occurences = re.finditer(pattern, equation)
     coefficients = (re.search(r"[+-][+-]?(\d*\.)?\d+", occurence[0])[0] for occurence in occurences)
@@ -41,11 +46,13 @@ def get_coefficient(pattern: str, equation: str) -> float:
 
 
 def get_all_coefficients(equation: str) -> Tuple[float, float, float]:
-    """Gets all coefficients of equation w/o [=]
+    """Получает все коэф. выражения
+
     Args:
-        equation (str): equation from which coefficients are to be taken
+        equation (str): выражение, из которого взять коэф.
+
     Returns:
-        tuple[Decimal, Decimal, Decimal]: tuple containing (a, b, c) coefficients
+        tuple[float, float, float]: кортеж (неизменяемый список) с коэф. (a, b, c)
     """
     equation = normalize_equation(equation)
 
@@ -62,8 +69,8 @@ def get_one_root(a, b, discriminant):
 
 
 def get_two_roots(a, b, discriminant):
-    x1 = (-b + discriminant**0.5)/2*a
-    x2 = (-b - discriminant**0.5)/2*a
+    x1 = (-b + discriminant**0.5)/(2*a)
+    x2 = (-b - discriminant**0.5)/(2*a)
     return f'{x1}; {x2};  {discriminant}'
 
 
@@ -87,20 +94,6 @@ def get_equation():
     return input("Введите выражение: ")
 
 
-def menu(prompt: str, actions: Dict[str, Tuple[Callable[..., Any], List[Any], Dict[str, Any]]], start_number: int = 1):
-    actions = {str(k): v for k, v in enumerate(actions.values(), start=start_number)}
-    while True:
-        print(prompt)
-        print("Выберите вариант ответа из предложенных: ", end="")
-        for position, action in enumerate(actions, start=start_number):
-            print(f"{position}) {action}")
-        answer = input()
-        if answer in actions:
-            break
-        print("Неверный вариант")
-
-    actions[answer][0](*actions[answer][1], **actions[answer][2])
-
 def file_test():
     with open("equations.txt", encoding="utf-8") as file:
         for line in file:
@@ -109,9 +102,11 @@ def file_test():
             print_solution(equation[0])
             print(*answer)
 
+
 def input_test():
     equation = get_equation()
     print_solution(equation)
+
 
 if __name__ == "__main__":
     file_test()
