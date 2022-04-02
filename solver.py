@@ -63,15 +63,17 @@ def get_all_coefficients(equation: str) -> Tuple[float, float, float]:
     return (a_coefficient, b_coefficient, c_coefficient)
 
 
-def get_one_root(a, b, discriminant):
+def get_one_root(a, b):
+    print('Формулы:\nax^2 + bx + c = 0\nx = -b / (2 * a)\nКорень уравнения:')
     x = -b/(2*a)
-    return f'{x}; {discriminant}'
+    return f'x = {x}'
 
 
 def get_two_roots(a, b, discriminant):
+    print('Формулы:\nax^2 + bx + c = 0\nD = b^2 - 4 * a * c\nx1 = (-b + D)/(2*a)\nx2 = (-b - D)/(2*a)\nКорни уравнения:')
     x1 = (-b + discriminant**0.5)/(2*a)
     x2 = (-b - discriminant**0.5)/(2*a)
-    return f'{x1}; {x2};  {discriminant}'
+    return f'x1 = {x1}\nx2 = {x2}\nD = {discriminant}'
 
 
 def solve_equation(equation):
@@ -80,7 +82,7 @@ def solve_equation(equation):
     if discriminant > 0:
         return get_two_roots(a, b, discriminant)
     elif discriminant == 0:
-        return get_one_root(a, b, discriminant)
+        return get_one_root(a, b)
     else:
         return 'Нет действительных корней'
 
@@ -94,19 +96,10 @@ def get_equation():
     return input("Введите выражение: ")
 
 
-def file_test():
-    with open("equations.txt", encoding="utf-8") as file:
-        for line in file:
-            equation = line.split("; ")
-            answer = equation[1].split(" ")
-            print_solution(equation[0])
-            print(*answer)
-
-
-def input_test():
+def input_equation():
     equation = get_equation()
     print_solution(equation)
 
 
 if __name__ == "__main__":
-    file_test()
+    input_equation()
