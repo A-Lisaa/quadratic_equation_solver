@@ -64,16 +64,15 @@ def get_all_coefficients(equation: str) -> Tuple[float, float, float]:
 
 
 def get_one_root(a, b):
-    print('Формулы:\nax^2 + bx + c = 0\nx = -b / (2 * a)\nКорень уравнения:')
     x = -b/(2*a)
-    return f'x = {x}'
+    return f'Формулы:\nax^2 + bx + c = 0\nx = -b / (2 * a)\n\nКорень уравнения:\nx = {x}'
 
 
 def get_two_roots(a, b, discriminant):
-    print('Формулы:\nax^2 + bx + c = 0\nD = b^2 - 4 * a * c\nx1 = (-b + D)/(2*a)\nx2 = (-b - D)/(2*a)\nКорни уравнения:')
     x1 = (-b + discriminant**0.5)/(2*a)
     x2 = (-b - discriminant**0.5)/(2*a)
-    return f'x1 = {x1}\nx2 = {x2}\nD = {discriminant}'
+    return f'Формулы:\nax^2 + bx + c = 0\nD = b^2 - 4 * a * c\nx1 = (-b + D)/(2*a)\nx2 = (-b - D)/(2*a)\n\nКорни ' \
+           f'уравнения:\nx1 = {x1}\nx2 = {x2}\nD = {discriminant}'
 
 
 def solve_equation(equation):
