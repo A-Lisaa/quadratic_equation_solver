@@ -1,4 +1,4 @@
-from solver import print_solution, get_equation
+from solver import print_solution, get_equation, gcd
 
 
 def file_test():
@@ -16,4 +16,4 @@ def input_test():
 
 
 if __name__ == "__main__":
-    file_test()
+    print(gcd(9, 12, 15))
