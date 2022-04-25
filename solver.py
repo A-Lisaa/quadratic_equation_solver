@@ -36,10 +36,15 @@ class Equation:
         self.normalized_equation = self.get_normalized_equation(self.start_equation)
 
         self._work_equation = self.normalized_equation
+        if not self.normalized_equation:
+            self.return_string = "Ты че дурак, бля? Какая пустая строка, нахуй?"
+            return
         self._raw_terms = self.get_raw_terms(self.normalized_equation)
         self.variable_name = self.get_variable_name()
         self._terms = self.get_terms(self._raw_terms)
         self._coefficients = self.get_coefficients(self._terms)
+
+        self.return_string = f"{self._terms}; {self._coefficients}"
 
     def get_normalized_equation(self, equation: str) -> str:
         equation = equation.strip()
