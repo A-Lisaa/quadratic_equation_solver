@@ -1,36 +1,45 @@
 import math
 import re
 
-functions = {
+FUNCTIONS = {
     'sqrt': math.sqrt,
+    'ln': math.log,
+
     'sin': math.sin,
     'tg': math.tan,
     'sec': lambda x: 1/math.cos(x),
+
     'cos': math.cos,
     'ctg': lambda x: 1/math.tan(x),
     'cosec': lambda x: 1/math.sin(x),
-    'ln': math.log,
 }
 
-constants = {
+
+CONSTANTS = {
     'pi': math.pi,
     'e': math.e,
     'fi': 1.6180339887
 }
 
+
+SideTermCoefficients = list[str]
+TermCoefficients = tuple[SideTermCoefficients, SideTermCoefficients]
+Coefficients = tuple[TermCoefficients, TermCoefficients, TermCoefficients]
+
+RawSideTerms = list[str]
+RawTerms = tuple[RawSideTerms, RawSideTerms]
+Terms = tuple[TermCoefficients, TermCoefficients, TermCoefficients]
+
 class Equation:
     def __init__(self, equation: str):
-        self.equation = equation
-        self.normalized_equation = self.get_normalized_equation(equation)
+        self.start_equation = equation
+        self.normalized_equation = self.get_normalized_equation(self.start_equation)
 
-        self.left_side, self.right_side = self.get_sides(equation)
-        #self.left_side_coefficients, self.right_side_coefficients = self.get_sides_coefficients(self.left_side, self.right_side)
-
-        self.variable_name = ""
-
-        self.a = 0
-        self.b = 0
-        self.c = 0
+        self._work_equation = self.normalized_equation
+        self._raw_terms = self.get_raw_terms(self.normalized_equation)
+        self.variable_name = self.get_variable_name()
+        self._terms = self.get_terms(self._raw_terms)
+        self._coefficients = self.get_coefficients(self._terms)
 
     def get_normalized_equation(self, equation: str) -> str:
         equation = equation.strip()
@@ -38,40 +47,91 @@ class Equation:
         return equation
 
     def get_sides(self, equation: str) -> tuple[str, str]:
+        def process(part: str) -> str:
+            part = part.strip()
+            if not part.startswith("-"):
+                part = "+" + part
+            return part
+
         splitted = equation.split("=")
-        return (splitted[0].strip(), splitted[1].strip())
 
-    def get_sign_coefficients(self, string: str, sign: str) -> list[str]:
-        occurences = re.finditer(f"\\{sign}" + r" *\w+", string)
-        coefficients = [occurence.group() for occurence in occurences]
-        print()
+        return tuple(map(process, splitted))
 
-    def get_side_coefficients(self, side: str) -> tuple[str]:
-        side = side.strip()
-        if side[0] != "-":
-            side = "+" + side
-        positive_coefficients = self.get_sign_coefficients(side, "+")
-        negative_coefficients = self.get_sign_coefficients(side, "-")
+    def get_raw_side_terms(self, side: str) -> RawSideTerms:
+        coefficients = re.findall(r"[+\-=][^+\-=]*", side)
+        for i, coefficient in enumerate(coefficients):
+            coefficients[i] = coefficient.strip()
+        return coefficients
 
-    def get_sides_coefficients(self, left_side: str, right_side: str) -> tuple[tuple[str], tuple[str]]:
-        positive_coefficients = ...
+    def get_raw_terms(self, equation: str) -> RawTerms:
+        sides = self.get_sides(equation)
+        left_coefficients = self.get_raw_side_terms(sides[0])
+        right_coefficients = self.get_raw_side_terms(sides[1])
+        return left_coefficients, right_coefficients
 
-    def check_one_variable(self):
-        ...
+    def get_side_term(
+        self,
+        raw_terms: RawSideTerms,
+        pattern: str
+    ) -> tuple[RawSideTerms, SideTermCoefficients]:
+        occurrences = []
+        for term in raw_terms:
+            if re.search(pattern, term):
+                occurrences.append(term.strip())
+                raw_terms.remove(term)
+        return raw_terms, occurrences
 
-    def set_variable_name(self):
+    def get_term(
+        self,
+        raw_terms: RawTerms,
+        pattern: str
+    ) -> tuple[RawTerms, TermCoefficients]:
+        left_terms, left_side = self.get_side_term(raw_terms[0], pattern)
+        right_terms, right_side = self.get_side_term(raw_terms[1], pattern)
+        return (left_terms, right_terms), (left_side, right_side)
 
-        self.variable_name = ...
+    def get_terms(self, raw_terms: RawTerms) -> Terms:
+        raw_terms, quadratic_terms = self.get_term(raw_terms, rf"{self.variable_name}2")
+        raw_terms, linear_terms = self.get_term(raw_terms, rf"{self.variable_name}")
+        raw_terms, free_terms = self.get_term(raw_terms, r"")
 
-    def set_coefficients(self):
-        ...
+        if raw_terms[0] or raw_terms[1]:
+            raise RuntimeError(f"Coefficients is not empty: {raw_terms}")
 
-    def main(self):
-        self.get_side_coefficients(self.equation.split("=")[0])
+        return quadratic_terms, linear_terms, free_terms
 
-    def get_discriminant(self, a:float, b:float, c:float) -> float:
-        return b**2 - 4*a*c
+    def get_coefficients(self, terms: Terms) -> Coefficients:
+        coefficients = (([], []), ([], []), ([], []))
+        for i, term_type in enumerate(terms):
+            for j, side in enumerate(term_type):
+                for term in side:
+                    if i == 0:
+                        term = term[:-2]
+                    elif i == 1:
+                        term = term[:-1]
+                    term = term.strip()
+                    while term.endswith("*"):
+                        term = term[:-1]
+                    term = term.strip()
+                    coefficients[i][j].append(term)
+        return coefficients
 
+    def get_variable_name(self):
+        terms = self._raw_terms[0] + self._raw_terms[1]
+        expected_variable = terms[0][-2]
+        for term in terms:
+            if (
+                not (
+                    term.endswith(f"{expected_variable}2")
+                    or term.endswith(f"{expected_variable}")
+                    or term[-1].isdigit()
+                )
+            ):
+                raise RuntimeError("Variable names differ")
+        return expected_variable
+
+    def get_discriminant(self, a: float, b: float, c: float) -> float:
+        return b*b - 4*a*c
 
     def calculate_coefficient(self, coefficients: list[str]) -> float:
         coefficient_overall = 0
@@ -82,17 +142,17 @@ class Equation:
                 argument = coefficient[coefficient.index('(') + 1:coefficient.index(')')]
 
                 if '-' in argument:
-                    if argument in constants:
-                            argument = -(constants[argument[1:]])
+                    if argument in CONSTANTS:
+                        argument = -(CONSTANTS[argument[1:]])
                     else:
-                        argument = constants[argument]
-                    value = functions[function](float(argument))
+                        argument = CONSTANTS[argument]
+
+                value = FUNCTIONS[function](float(argument))
             else:
                 value = coefficient[1:]
 
-                if value in constants:
-
-                    value = constants[value]
+                if value in CONSTANTS:
+                    value = CONSTANTS[value]
 
                 value = float(value)
 
@@ -101,168 +161,11 @@ class Equation:
         return coefficient_overall
 
 
-# def normalize_equation(equation: str) -> str:
-#     """Нормализует выражение к стандарту, чтобы все функции работали с одним видом
-
-#     Args:
-#         equation (str): выражение для нормализации
-
-#     Returns:
-#         str: нормализованное выражение
-#     """
-#     # Удаляем пробелы, чтобы не иметь проблем из-за них
-#     # Но нужно добавить 1 пробел в конец, чтобы определить конец выражения
-#     # (возможно стоит заменить на \n, например)
-#     equation = equation.strip().replace(" ", "") + " "
-#     # Удаляем * и ^ и заменяем , на . чтобы иметь одинаковый вид всех уравнений
-#     equation = equation.replace("*", "").replace("^", "").replace(",", ".")
-#     # Добавляем + к первому коэффициенту, чтобы все коэф. имели знак
-#     if not equation.startswith(("+", "-")):
-#         equation = "+" + equation
-#     # Меняем имя переменной на x, чтобы оно всегда было одинаковое
-#     equation = "".join(("x" if character.isalpha() else character for character in equation))
-#     # Добавляем коэффициенты +-1, если коэф. нет, чтобы везде были коэф.
-#     equation = re.sub(r"\+x", "+1x", equation)
-#     equation = re.sub(r"\-x", "-1x", equation)
-
-#     return equation
+def main():
+    equation = Equation("sqrt(2)*x2 + 4x -10 = -4x2")
+    print(equation._terms)
+    print(equation._coefficients)
 
 
-# def get_coefficient(pattern: str, equation: str) -> float:
-#     """Получает один из коэф. выражения по паттерну
-
-#     Args:
-#         pattern (str): паттерн коэффициента, по которому его искать
-#         equation (str): выражение, из которого взять коэф.
-
-#     Returns:
-#         float: коэффициент
-#     """
-#     occurrences = re.finditer(pattern, equation)
-#     coefficients = (re.search(r"[+-][+-]?(\d*\.)?\d+", occurrence[0])[0] for occurrence in occurrences)
-
-#     return sum((float(i) for i in coefficients))
-
-
-# def get_all_coefficients(equation: str) -> tuple[float, float, float]:
-#     """Получает все коэф. выражения
-
-#     Args:
-#         equation (str): выражение, из которого взять коэф.
-
-#     Returns:
-#         tuple[float, float, float]: кортеж (неизменяемый список) с коэф. (a, b, c)
-#     """
-#     equation = normalize_equation(equation)
-
-#     a_coefficient = get_coefficient(r"[+-][+-]?(\d*\.)?\d+x2[ =+-]", equation)
-#     b_coefficient = get_coefficient(r"[+-][+-]?(\d*\.)?\d+x[ =+-]", equation)
-#     c_coefficient = get_coefficient(r"[+-][+-]?(\d*\.)?\d+[ =+-]", equation)
-
-#     return (a_coefficient, b_coefficient, c_coefficient)
-
-
-# def get_one_root_dict(equation: str, a: float, b: float, c: float) -> dict[str, str]:
-#     """Создает словарь с решением ураанения, если в нем один корень
-#     Args:
-#         equation (str): уравнение, введеное пользователем
-#         a, b, c (str): коэф. уравнения
-
-#     Returns:
-#         dict[str, str]: словарь
-#     """
-#     root = -b/(2*a)
-
-#     # a_coefficient_sign = "-" if a < 0 else "+"
-#     b_coefficient_sign = "-" if b < 0 else "+"
-#     c_coefficient_sign = "-" if c < 0 else "+"
-
-#     coefficient_gcd = math.gcd(abs(int(a)), abs(int(b)), abs(int(c)))
-
-#     a_gcd = a/coefficient_gcd
-#     b_gcd = b/coefficient_gcd
-#     c_gcd = c/coefficient_gcd
-
-#     solution = {}
-
-#     solution['origin'] = equation
-#     solution['normalized'] = f'{a}x² {b_coefficient_sign} {abs(b)}x {c_coefficient_sign} {abs(c)} = 0'
-#     solution['reduced'] = f'{a_gcd}x² {b_coefficient_sign} {abs(b)/coefficient_gcd}x {c_coefficient_sign} {abs(c)/coefficient_gcd} = 0'
-#     solution['discriminant'] = f'D = b² - 4ac = {b_gcd}² - 4 * ({a_gcd}) * ({c_gcd}) = 0'
-#     solution['root'] = f'x = -b/(2a) = ({b_gcd})/({2*a_gcd}) = {root}'
-#     return solution
-
-
-# def get_two_roots_str(equation: str, a: float, b: float, c: float, discriminant: float) -> dict[str, str]:
-#     """Создает словарь с решением уравнения, если в нем два корня
-#     Args:
-#         equation (str): уравнение, введеное пользователем
-#         a, b, c (str): коэф. уравнения
-#         discriminant (str): дискрим. уравнения
-
-#     Returns:
-#         dict[str, str]: словарь
-#     """
-
-#     root1 = (-b + discriminant**0.5)/(2*a)
-#     root2 = (-b - discriminant**0.5)/(2*a)
-
-#     b_coefficient_sign = "-" if b < 0 else "+"
-#     c_coefficient_sign = "-" if c < 0 else "+"
-
-#     coefficient_gcd = math.gcd(abs(int(a)), abs(int(b)), abs(int(c)))
-
-#     a_gcd = a/coefficient_gcd
-#     b_gcd = b/coefficient_gcd
-#     c_gcd = c/coefficient_gcd
-
-#     solution = {}
-
-#     solution['origin'] = equation
-#     solution['normalized'] = f'{a}x² {b_coefficient_sign} {abs(b)}x {c_coefficient_sign} {abs(c)} = 0'
-#     solution['reduced'] = f'{a_gcd}x² {b_coefficient_sign} {abs(b)/coefficient_gcd}x {c_coefficient_sign} {abs(c)/coefficient_gcd} = 0'
-#     solution['discriminant'] = f'D = b² - 4ac = {b_gcd}² - 4 * ({a_gcd}) * ({c_gcd}) = {discriminant}'
-#     solution['root1'] = f'x₁ = (-b + √discriminant)/(2 * a) = (-({b_gcd}) + √{discriminant})/(2 * {a_gcd}) = {root1}'
-#     solution['root2'] = f'x₂ = (-b - √discriminant)/(2 * a) = (-({b_gcd}) - √{discriminant})/(2 * {a_gcd}) = {root2}'
-#     return solution
-
-# # √      ²      ₂       ₁
-
-
-# def solve_equation(equation: str) -> dict[str, str]:
-#     """Возвращает словарь с решением(решениями) уравнения
-#     Args:
-#         equation (str): уравнение, введеное пользователем
-
-#     Returns:
-#         dict[str, str]: словарь
-#     """
-#     a, b, c = get_all_coefficients(equation)
-#     discriminant = b*b - 4*a*c
-#     if discriminant > 0:
-#         return get_two_roots_str(equation, a, b, c, discriminant)
-#     elif discriminant == 0:
-#         return get_one_root_dict(equation, a, b, c)
-#     else:
-#         solution = {}
-
-#         solution['discriminant'] = f'D = b² - 4ac = {b}² - 4 * ({a}) * ({c}) = {discriminant} < 0'
-#         solution['root'] = 'Нет действительных корней'
-
-#         return solution
-
-
-# def input_equation() -> dict[str, str]:
-#     """Возвращает словарь с решением(решениями) уравнения
-#     Args:
-
-#     Returns:
-#         dict[str, str]: словарь
-#     """
-#     equation = input("Введите выражение: ")
-#     solution = solve_equation(equation)
-#     return solution
-
-
-# if __name__ == "__main__":
-#     print(input_equation())
+if __name__ == "__main__":
+    main()
