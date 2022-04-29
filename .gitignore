@@ -130,3 +130,6 @@ dmypy.json
 
 # vscode folder
 .vscode/
+
+# qt add-on
+.qt_for_python/
