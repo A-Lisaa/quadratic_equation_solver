@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.inputField.sizePolicy().hasHeightForWidth())
         self.inputField.setSizePolicy(sizePolicy)
-        self.inputField.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.inputField.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.inputField.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
         self.inputField.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.inputField.setObjectName("inputField")

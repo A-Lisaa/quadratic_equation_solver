@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
         self.ui.lnButton.clicked.connect(lambda: self.add_equation_part("ln("))
         self.ui.emptyButton.clicked.connect(lambda: self.add_equation_part("sqrt(")) # Placeholder
 
-    def add_equation_part(self, part: str):
+    def add_equation_part(self, part: str): # sin(cos(tg(pi*sin(sqrt(5)))) = x2
         self.ui.inputField.insert(f"{part}")
 
     def previous_equation(self):
