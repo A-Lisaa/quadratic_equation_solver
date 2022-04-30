@@ -35,21 +35,44 @@ class Equation:
 
         self.solvability_issue = self._get_solvability_issue(self._work_equation)
         if self.solvability_issue:
+            self.solvable = False
             self.return_string = self.solvability_issue
             return
 
         self._raw_terms = self.get_raw_terms(self.normalized_equation)
-
-        # is_one_variable = self._check_one_variable()
-        # if not is_one_variable:
-        #     self.return_string = "Имена переменных различны"
-        #     return
-
-        self._variable_name = self.get_variable_name()
+        self._variable_name = self.get_variable_name(self._raw_terms)
+        if not self._variable_name:
+            self.solvable = False
+            self.return_string = "Имена переменных различны"
+            return
         self._terms = self.get_terms(self._raw_terms)
         self._coefficients = self.get_coefficients(self._terms)
 
-        self.return_string = f"{self._coefficients}"
+        self.a = self.calculate_coefficient(self._coefficients[0])
+
+        self.b = self.calculate_coefficient(self._coefficients[1])
+        self.b_sign = '-' if self.b < 0 else '+'
+
+        self.c = self.calculate_coefficient(self._coefficients[2])
+        self.c_sign = '-' if self.c < 0 else '+'
+
+        self.discriminant = self.get_discriminant(self.a, self.b, self.c)
+        self.root1, self.root2 = self.get_roots(self.discriminant, self.a, self.b)
+
+        if self.discriminant > 0:
+            self.return_string = f"""{self.a}{self._variable_name}² {self.b_sign} {str(self.b).replace('-', '') if '-' in str(self.b) else self.b}{self._variable_name} {self.c_sign} {str(self.c).replace('-', '') if '-' in str(self.c) else self.c} = 0
+D = b² - 4ac = {self.b**2}² - 4 * ({self.a}) * ({self.c}) = {self.discriminant}
+x₁ = (-b + √discriminant)/(2 * a) = (-({self.b}) + √{self.discriminant})/(2 * {self.a}) = {self.root1}
+x₂ = (-b - √discriminant)/(2 * a) = (-({self.b}) - √{self.discriminant})/(2 * {self.a}) = {self.root2}"""
+        elif self.discriminant == 0:
+            self.return_string = f"""{self.a}{self._variable_name}² {self.b_sign} {str(self.b).replace('-', '') if '-' in str(self.b) else self.b}{self._variable_name} {self.c_sign} {str(self.c).replace('-', '') if '-' in str(self.c) else self.c} = 0"
+D = b² - 4ac = {self.b**2}² - 4 * ({self.a}) * ({self.c}) = {self.discriminant}
+x₁ = (-b + √discriminant)/(2 * a) = (-({self.b}) + √{self.discriminant})/(2 * {self.a}) = {self.root1}"""
+        else:
+            self.return_string = "Нет действительных решений"
+
+    def __str__(self):
+        return self.return_string
 
     def _get_solvability_issue(self, equation: str) -> str:
         if not equation:
@@ -62,7 +85,7 @@ class Equation:
         if any(map(lambda x: not x.strip(), splitted)):
             return "Хотя бы одна из сторон пуста"
 
-        if not re.search(r"[+\-=]\s*\w*[a-zA-Z]2\s*[+\-=\s]", equation):
+        if not re.search(r"[+\-=\s]*\w*[^+\-=\s]2\s*[+\-=\s]", equation):
             return "Нет квадратного коэффициента"
 
         return ""
@@ -85,7 +108,7 @@ class Equation:
         return tuple(map(process, splitted))
 
     def get_raw_side_terms(self, side: str) -> SideTerms:
-        coefficients = re.findall(r"[+\-=][\w\(\)\*\/\+\-\.\,]+", side)
+        coefficients = re.findall(r"[+\-=][\w\s()*/\.\,]*[^+\-=]", side)
         for i, coefficient in enumerate(coefficients):
             coefficients[i] = coefficient.strip()
         return coefficients
@@ -95,6 +118,15 @@ class Equation:
         left_coefficients = self.get_raw_side_terms(sides[0])
         right_coefficients = self.get_raw_side_terms(sides[1])
         return left_coefficients, right_coefficients
+
+    def get_variable_name(self, raw_terms: tuple[list[str], list[str]]) -> str:
+        terms = raw_terms[0] + raw_terms[1]
+        expected_variable = [term for term in terms if re.search(r"\w2$", term)][0][-2]
+        for term in terms:
+            if re.search(r"\w[^\d]2$", term) or re.search(r"\w[^\d]$", term):
+                if not re.search(rf"{expected_variable}2$", term) and not re.search(rf"{expected_variable}$", term):
+                    return ""
+        return expected_variable
 
     def get_side_term(
         self,
@@ -118,9 +150,9 @@ class Equation:
         return (left_terms, right_terms), (left_side, right_side)
 
     def get_terms(self, raw_terms: Term) -> Terms:
-        raw_terms, quadratic_terms = self.get_term(raw_terms, r"[a-zA-Z]2$")
-        raw_terms, linear_terms = self.get_term(raw_terms, r"[a-zA-Z]$")
-        raw_terms, free_terms = self.get_term(raw_terms, r"$")
+        raw_terms, quadratic_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self._variable_name}2")
+        raw_terms, linear_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self._variable_name}")
+        raw_terms, free_terms = self.get_term(raw_terms, r"")
 
         if raw_terms[0] or raw_terms[1]:
             raise RuntimeError(f"Coefficients is not empty: {raw_terms}")
@@ -161,57 +193,18 @@ class Equation:
                     coefficients[i][j].append((sign, value))
         return coefficients
 
-    def float_convertible(self, value: str) -> bool:
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
-
-    def string_in_constants(self, value: str) -> bool:
-        for constant in CONSTANTS:
-            if value.endswith(constant):
-                return True
-        return False
-
-    def _check_one_variable(self) -> bool:
-        terms = self._raw_terms[0] + self._raw_terms[1]
-        expected_variable = terms[0][-2]
-        for term in terms:
-            if (
-                not (
-                    # Заканчивается на {буква}2, aka является квадратным коэф.
-                    term.endswith(f"{expected_variable}2")
-                    # Заканчивается на {буква}, aka является линейным коэф.
-                    or term.endswith(f"{expected_variable}")
-                    or (
-                        # Можно преобразовать в вещественное число
-                        self.float_convertible(term)
-                        # Заканчивается закрывающей скобкой (функции)
-                        or term.endswith(")")
-                        # Заканчивается на константу
-                        or self.string_in_constants(term)
-                        # Является свободным членом
-                    )
-                )
-            ):
-                return False
-        return True
-
-    def get_variable_name(self) -> str:
-        terms = self._raw_terms[0] + self._raw_terms[1]
-        return terms[0][-2]
-
     def get_discriminant(self, a: float, b: float, c: float) -> float:
         return b*b - 4*a*c
 
-    def calculate_coefficient(self, coefficients: list[str]) -> float:
+    def calculate_coefficient_same_side(self, coefficient: list[tuple[str, str]]) -> float:
         coefficient_overall = 0
-        for coefficient in coefficients:
-            sign = coefficient[0]
-            if '(' in coefficient:
-                function = coefficient[1:coefficient.index('(')]
-                argument = coefficient[coefficient.index('(') + 1:coefficient.index(')')]
+        for elements in coefficient:
+            sign = elements[0]
+            value = elements[1]
+
+            if '(' in value:
+                function = value[:value.index('(')]
+                argument = value[value.index('(')+1:value.index(')')]
 
                 if '-' in argument:
                     if argument in CONSTANTS:
@@ -221,23 +214,40 @@ class Equation:
 
                 value = FUNCTIONS[function](float(argument))
             else:
-                value = coefficient[1:]
-
                 if value in CONSTANTS:
                     value = CONSTANTS[value]
-
-                value = float(value)
+                else:
+                    value = float(value.replace(',', '.'))
 
             coefficient_overall += value if sign == "+" else -value
-
         return coefficient_overall
+
+    def calculate_coefficient(self, coefficients: tuple[list, list]) -> float:
+        coefficient_left  = self.calculate_coefficient_same_side(coefficients[0])
+        coefficient_right  = self.calculate_coefficient_same_side(coefficients[1])
+        return coefficient_left - coefficient_right
+
+    def get_roots(self, discriminant: float, a: float, b: float):
+        if discriminant > 0:
+            root1 = (-b + discriminant**0.5)/(2*a)
+            root2 = (-b - discriminant**0.5)/(2*a)
+        elif discriminant == 0:
+            root1 = (-b)/(2*a)
+            root2 = None
+        else:
+            root1 = None
+            root2 = None
+        return root1, root2
 
 
 def main():
-    equation = Equation("sin(cos(tg(pi*sin(sqrt(5.5)))) = x2")
-    print(equation.return_string)
-    print(equation._terms)
-    print(equation._coefficients)
+    with open('equations.txt', encoding='UTF-8') as file:
+        for line in file:
+            eq = line.split("; ")
+            equation = Equation(eq[0])
+            answer = eq[1].split(" ")
+            print(equation)
+            print(*answer)
 
 
 if __name__ == "__main__":

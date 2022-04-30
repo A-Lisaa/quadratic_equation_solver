@@ -1,19 +1,15 @@
-from solver import print_solution, get_equation, gcd
+from solver import Equation
 
 
 def file_test():
     with open("equations.txt", encoding="utf-8") as file:
         for line in file:
-            equation = line.split("; ")
-            answer = equation[1].split(" ")
-            print_solution(equation[0])
+            eq = line.split("; ")
+            equation = Equation(eq[0])
+            answer = eq[1].split(" ")
+            print(equation)
             print(*answer)
 
 
-def input_test():
-    equation = get_equation()
-    print_solution(equation)
-
-
 if __name__ == "__main__":
-    print(gcd(9, 12, 15))
+    file_test()
