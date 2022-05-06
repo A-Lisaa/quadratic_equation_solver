@@ -6,24 +6,13 @@ from .type_aliases import (AllCoefficients, BothSidesCoefficients,
 
 class Parser:
     def __init__(self, equation: str):
-        self._equation = self.get_normalized_equation(equation)
-        self.variable_name = self.get_variable_name()
+        self.equation = self.get_normalized_equation(equation)
+        self.raw_terms = self.get_raw_terms(self.equation)
 
-    def get_solvability_issue(self, equation: str) -> str:
-        if not equation:
-            return "Выражение пусто"
+        self.variable_name = self.get_variable_name(self.raw_terms)
 
-        if equation.count("=") != 1:
-            return "Кол-во '=' не 1"
-
-        splitted = equation.split("=")
-        if any(map(lambda x: not x.strip(), splitted)):
-            return "Хотя бы одна из сторон пуста"
-
-        if not re.search(r"[+\-=\s]*\w*[^+\-=\s]2\s*[+\-=\s]", equation):
-            return "Нет квадратного коэффициента"
-
-        return ""
+        self.terms = self.get_terms(self.raw_terms)
+        self.coefficients = self.get_coefficients(self.terms)
 
     def get_normalized_equation(self, equation: str) -> str:
         equation = equation.strip()
@@ -54,7 +43,7 @@ class Parser:
         right_coefficients = self.get_raw_side_terms(sides[1])
         return left_coefficients, right_coefficients
 
-    def get_variable_name(self, raw_terms: tuple[list[str], list[str]]) -> str:
+    def get_variable_name(self, raw_terms: BothSidesCoefficients) -> str:
         terms = raw_terms[0] + raw_terms[1]
         expected_variable = [term for term in terms if re.search(r"\w2$", term)][0][-2]
         for term in terms:
@@ -85,8 +74,8 @@ class Parser:
         return (left_terms, right_terms), (left_side, right_side)
 
     def get_terms(self, raw_terms: BothSidesCoefficients) -> AllCoefficients:
-        raw_terms, quadratic_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self._variable_name}2")
-        raw_terms, linear_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self._variable_name}")
+        raw_terms, quadratic_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self.variable_name}2")
+        raw_terms, linear_terms = self.get_term(raw_terms, rf"[+\-=]\s*[\w\.,()*]*{self.variable_name}")
         raw_terms, free_terms = self.get_term(raw_terms, r"")
 
         if raw_terms[0] or raw_terms[1]:

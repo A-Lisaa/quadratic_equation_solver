@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.uic import loadUi
 
-from solver import Equation
+from ...backend.equation import Equation
 
 app = QApplication([])
-win = loadUi("knopky.ui")
+win = loadUi("./src/frontend/pyqt/knopky.ui")
 equations = []
 index = -1
 
