@@ -11,33 +11,34 @@ class Equation:
     def __init__(self, equation: str):
         self.equation = equation
 
-        parser = Parser(self.equation)
-
         self.solvability_issue = self.get_solvability_issue(self.equation)
         if self.solvability_issue:
             self.solvable = False
-            self.return_string = self.solvability_issue
+            self.solution = self.solvability_issue
             return
 
-        self.variable_name = parser.variable_name
+        self.parser = Parser(self.equation)
+
+        self.variable_name = self.parser.variable_name
 
         if not self.variable_name:
             self.solvable = False
-            self.return_string = "Имена переменных различны"
+            self.solution = "Имена переменных различны"
             return
 
-        solver = Solver(parser.coefficients)
+        self.solver = Solver(self.parser.coefficients)
 
-        self.a = solver.a
-        self.b = solver.b
-        self.c = solver.c
 
-        self.discriminant = solver.discriminant
+        self.a = self.solver.a
+        self.b = self.solver.b
+        self.c = self.solver.c
 
-        self.root1 = solver.root1
-        self.root2 = solver.root2
+        self.discriminant = self.solver.discriminant
 
-        self.return_string = self.get_return_string()
+        self.root1 = self.solver.root1
+        self.root2 = self.solver.root2
+
+        self.solution = self.get_return_string()
 
     def get_solvability_issue(self, equation: str) -> str:
         if not equation:
@@ -59,21 +60,68 @@ class Equation:
         if self.discriminant < 0:
             return "Нет действительных решений"
 
-        a_sign = determine_sign(self.a)
-        b_sign = determine_sign(self.b)
+        
+        discriminant = self.discriminant
+
+
+        original_equation = self.equation
+        equation_on_same_side = ...
+
+
+        a_left_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[0][0])
+        a_right_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[0][1])
+        a = self.solver.calculate_coefficient(self.parser.coefficients[0])
+        try:
+            a = int(a)
+        except ValueError:
+            ...
+
+
+        b_left_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[1][0])
+        b_right_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[1][1])
+        b_left_sign = '-' if b_left_side < 0 else '+'
+        b_right_sign = '-' if b_right_side < 0 else '+'
+        b = self.solver.calculate_coefficient(self.parser.coefficients[1])
+        b_sign = determine_sign(b)
+
+
+        c_left_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[2][0])
+        c_right_side = self.solver.calculate_coefficient_same_side(self.parser.coefficients[2][1])
+        c_left_sign = '-' if c_left_side < 0 else '+'
+        c_right_sign = '-' if c_right_side < 0 else '+'
+        c = self.solver.calculate_coefficient(self.parser.coefficients[2])
         c_sign = determine_sign(self.c)
 
-        if self.discriminant > 0:
-            return f"""
-{self.a}{self.variable_name}² {b_sign} {str(self.b).replace('-', '') if '-' in str(self.b) else self.b}{self.variable_name} {c_sign} {str(self.c).replace('-', '') if '-' in str(self.c) else self.c} = 0
-D = b² - 4ac = {self.b**2}² - 4 * ({self.a}) * ({self.c}) = {self.discriminant}
-x₁ = (-b + √discriminant)/(2 * a) = (-({self.b}) + √{self.discriminant})/(2 * {self.a}) = {self.root1}
-x₂ = (-b - √discriminant)/(2 * a) = (-({self.b}) - √{self.discriminant})/(2 * {self.a}) = {self.root2}"""
-        elif self.discriminant == 0:
-            return f"""
-{self.a}{self.variable_name}² {b_sign} {str(self.b).replace('-', '') if '-' in str(self.b) else self.b}{self.variable_name} {c_sign} {str(self.c).replace('-', '') if '-' in str(self.c) else self.c} = 0"
-D = b² - 4ac = {self.b**2}² - 4 * ({self.a}) * ({self.c}) = {self.discriminant}
-x₁ = (-b + √discriminant)/(2 * a) = (-({self.b}) + √{self.discriminant})/(2 * {self.a}) = {self.root1}"""
 
-    def __str__(self):
-        return self.return_string
+        original_equation = self.equation
+        equation_on_left_side = f"""{a_left_side}{self.variable_name}² {b_left_sign} {str(b_left_side).replace('-', '') if '-' in str(b_left_side) else self.b}{self.variable_name} {c_left_sign} {str(c_left_side).replace('-', '') if '-' in str(c_left_side) else c_left_side} = {a_right_side}{self.variable_name}² {b_right_sign} {str(b_right_side).replace('-', '') if '-' in str(b_right_side) else b_right_side}{self.variable_name} {c_right_sign} {str(c_right_side).replace('-', '') if '-' in str(c_right_side) else c_right_side}"""
+
+
+        if self.discriminant > 0:
+            if a_right_side != 0 or b_right_side != 0 or c_right_side != 0:
+                return f"""{self.equation}
+{a_left_side}{self.variable_name}² {b_left_sign} {str(b_left_side).replace('-', '') if '-' in str(b_left_side) else self.b}{self.variable_name} {c_left_sign} {str(c_left_side).replace('-', '') if '-' in str(c_left_side) else c_left_side} = {a_right_side}{self.variable_name}² {b_right_sign} {str(b_right_side).replace('-', '') if '-' in str(b_right_side) else b_right_side}{self.variable_name} {c_right_sign} {str(c_right_side).replace('-', '') if '-' in str(c_right_side) else c_right_side}
+{a}{self.variable_name}² {b_sign} {str(b).replace('-', '') if '-' in str(b) else self.b}{self.variable_name} {c_sign} {str(c).replace('-', '') if '-' in str(c) else c} = 0
+D = b² - 4ac = {b ** 2}² - 4 * ({a}) * ({c}) = {self.discriminant}
+{self.variable_name}₁ = (-b + √discriminant)/(2 * a) = (-({b}) + √{discriminant})/(2 * {a}) = {self.root1}
+{self.variable_name}₂ = (-b - √discriminant)/(2 * a) = (-({b}) - √{discriminant})/(2 * {a}) = {self.root2}"""
+            else:
+                return f"""{self.equation}
+{a_left_side}{self.variable_name}² {b_left_sign} {str(b_left_side).replace('-', '') if '-' in str(b_left_side) else self.b}{self.variable_name} {c_left_sign} {str(c_left_side).replace('-', '') if '-' in str(c_left_side) else c_left_side} = 0
+{a}{self.variable_name}² {b_sign} {str(b).replace('-', '') if '-' in str(b) else self.b}{self.variable_name} {c_sign} {str(c).replace('-', '') if '-' in str(c) else c} = 0
+D = b² - 4ac = {b ** 2}² - 4 * ({a}) * ({c}) = {self.discriminant}
+{self.variable_name}₁ = (-b + √discriminant)/(2 * a) = (-({b}) + √{discriminant})/(2 * {a}) = {self.root1}
+{self.variable_name}₂ = (-b - √discriminant)/(2 * a) = (-({b}) - √{discriminant})/(2 * {a}) = {self.root2}"""
+        elif self.discriminant == 0:
+            if a_right_side != 0 or b_right_side != 0 or c_right_side != 0:
+                return f"""{self.equation}
+{a_left_side}{self.variable_name}² {b_left_sign} {str(b_left_side).replace('-', '') if '-' in str(b_left_side) else self.b}{self.variable_name} {c_left_sign} {str(c_left_side).replace('-', '') if '-' in str(c_left_side) else c_left_side} = {a_right_side}{self.variable_name}² {b_right_sign} {str(b_right_side).replace('-', '') if '-' in str(b_right_side) else b_right_side}{self.variable_name} {c_right_sign} {str(c_right_side).replace('-', '') if '-' in str(c_right_side) else c_right_side}
+{self.a}{self.variable_name}² {b_sign} {str(b).replace('-', '') if '-' in str(b) else self.b}{self.variable_name} {c_sign} {str(c).replace('-', '') if '-' in str(c) else c} = 0
+D = b² - 4ac = {b ** 2}² - 4 * ({a}) * ({c}) = {self.discriminant}
+{self.variable_name} = (-b + √discriminant)/(2 * a) = (-({b}) + √{discriminant})/(2 * {a}) = {self.root1}"""
+            else:
+                return f"""{self.equation}
+{a_left_side}{self.variable_name}² {b_left_sign} {str(b_left_side).replace('-', '') if '-' in str(b_left_side) else self.b}{self.variable_name} {c_left_sign} {str(c_left_side).replace('-', '') if '-' in str(c_left_side) else c_left_side} = 0
+{a}{self.variable_name}² {b_sign} {str(b).replace('-', '') if '-' in str(b) else b}{self.variable_name} {c_sign} {str(c).replace('-', '') if '-' in str(c) else c} = 0
+D = b² - 4ac = {b ** 2}² - 4 * ({a}) * ({c}) = {self.discriminant}
+{self.variable_name} = (-b + √discriminant)/(2 * a) = (-({b}) + √{discriminant})/(2 * {a}) = {self.root1}"""

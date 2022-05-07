@@ -34,7 +34,7 @@ class Solver:
 
         self.discriminant = self.get_discriminant(self.a, self.b, self.c)
 
-        self.root1, self.root2 = self.get_roots(self.a, self.b, self.discriminant)
+        self.root1, self.root2 = self.get_roots(self.discriminant, self.a, self.b)
 
     def get_discriminant(self, a: float, b: float, c: float) -> float:
         return b*b - 4*a*c

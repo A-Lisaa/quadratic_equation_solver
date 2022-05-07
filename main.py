@@ -1,7 +1,11 @@
-# from src.frontend.pyqt.gui_pyqt import main
+def irishka():
+    from src.frontend.pyqt.gui_pyqt import main
 
-# if __name__ == "__main__":
-#     main()
-from src.backend.equation import Equation
+    main()
 
-print(Equation("x2 + 10x - 10 = 0"))
+def alice():
+    from src.frontend.pyqt_alice.pyqt_gui import main
+
+    main()
+
+alice()

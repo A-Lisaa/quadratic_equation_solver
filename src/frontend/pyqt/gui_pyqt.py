@@ -18,95 +18,113 @@ def e():
 
 
 def f():
-    win.lineEdit.insert('f')
+    win.lineEdit.insert('phi')
 
 
 def sin():
-    win.lineEdit.insert('sin')
-
+    win.lineEdit.insert('sin()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def tg():
-    win.lineEdit.insert('tg')
-
+    win.lineEdit.insert('tg()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def sec():
-    win.lineEdit.insert('sec')
-
+    win.lineEdit.insert('sec()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def arcsin():
-    win.lineEdit.insert('arcsin')
+    win.lineEdit.insert('arcsin()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 
 def arctg():
-    win.lineEdit.insert('arctg')
-
+    win.lineEdit.insert('arctg()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def arcsec():
-    win.lineEdit.insert('arcsec')
-
+    win.lineEdit.insert('arcsec()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def cos():
-    win.lineEdit.insert('cos')
-
+    win.lineEdit.insert('cos()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def ctg():
-    win.lineEdit.insert('ctg')
-
+    win.lineEdit.insert('ctg()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def cosec():
-    win.lineEdit.insert('cosec')
+    win.lineEdit.insert('cosec()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 
 def arccos():
-    win.lineEdit.insert('arccos')
-
+    win.lineEdit.insert('arccos()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def arcctg():
-    win.lineEdit.insert('arcctg')
-
+    win.lineEdit.insert('arcctg()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def arccosec():
-    win.lineEdit.insert('arccosec')
-
+    win.lineEdit.insert('arccosec()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def sqrt():
-    win.lineEdit.insert('sqrt')
-
-
+    win.lineEdit.insert('sqrt()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 def ln():
-    win.lineEdit.insert('ln')
-
+    win.lineEdit.insert('ln()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 def lg():
-    win.lineEdit.insert('lg')
+    win.lineEdit.insert('lg()')
+    win.lineEdit.cursorBackward(False)
+    win.lineEdit.setFocus()
 
 
-def kalc():
+def calc():
     global index
     equation = Equation(win.lineEdit.text())
-    win.textBrowser.setText(equation)
+    win.textBrowser.setText(equation.solution)
     equations.append(equation)
     index = equations.index(equation)
 
 
 def back():
     global index
-    if index != 0:
-        win.lineEdit.setText(equations[index])
-    else:
+    if index > 0:
         index = index-1
-    win.lineEdit.setText(equations[index])
-
-
+        eq=equations[index]
+        win.lineEdit.setText(eq.equation)
+        win.textBrowser.setText(eq.solution)
+    
 def forward():
     global index
-    if index >= len(equations) -1:
-        win.lineEdit.setText(equations[index])
-    else:
+    if index < len(equations) -1:
         index = index+1
-    win.lineEdit.setText(equations[index])
+        eq=equations[index]
+        win.lineEdit.setText(eq.equation)
+        win.textBrowser.setText(eq.solution)
 
-
+def clear():
+    win.lineEdit.clear()
+    
 win.p_button.clicked.connect(p)
 win.e_button.clicked.connect(e)
 win.f_button.clicked.connect(f)
@@ -125,9 +143,11 @@ win.arccosec_button.clicked.connect(arccosec)
 win.sqrt_button.clicked.connect(sqrt)
 win.ln_button.clicked.connect(ln)
 win.lg_button.clicked.connect(lg)
-win.kalc.clicked.connect(kalc)
+win.calculate.clicked.connect(calc)
 win.back.clicked.connect(back)
 win.forward.clicked.connect(forward)
+#win.clear.clicked.connect(clear)
 
-win.show()
-app.exec()
+def main():
+    win.show()
+    app.exec()
