@@ -58,6 +58,11 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         events = {
             Qt.Key.Key_X: self.ui.xButton.click,
+            Qt.Key.Key_AsciiCircum: self.ui.xSquaredButton.click,
+            Qt.Key.Key_Up: self.ui.previousButton.click,
+            Qt.Key.Key_Down: self.ui.nextButton.click,
+            Qt.Key.Key_PageUp: self.ui.previousButton.click,
+            Qt.Key.Key_PageDown: self.ui.nextButton.click,
 
             Qt.Key.Key_0: self.ui.number0Button.click,
             Qt.Key.Key_1: self.ui.number1Button.click,

@@ -15,6 +15,8 @@ class Parser:
     def get_normalized_equation(self, equation: str) -> str:
         equation = equation.strip()
 
+        equation = equation.replace("x*x", "x²")
+
         equation = equation + "\n"
 
         return equation

@@ -1,3 +1,4 @@
+import math
 from typing import Literal
 
 from .parser import Parser
@@ -32,6 +33,12 @@ def parenthesize(number: float) -> str:
     return str(number)
 
 
+def gcd(*numbers: float) -> float:
+    ten_multiplier = 10**max(len(str(float(number)).split(".")[1]) for number in numbers)
+    numbers_gcd = math.gcd(*(int(number*ten_multiplier) for number in numbers))
+    return numbers_gcd/ten_multiplier
+
+
 class Equation:
     def __init__(self, equation: str):
         self.equation = equation
@@ -52,7 +59,6 @@ class Equation:
 
         self.solution = self.construct_return_string(
             self.coefficients,
-            self.equation,
             self.a,
             self.b,
             self.c,
@@ -82,7 +88,7 @@ class Equation:
         if any(map(lambda x: not x.strip(), splitted)):
             return "Хотя бы одна из сторон пуста"
 
-        if not "x²" in equation:
+        if not ("x²" in equation or "x*x" in equation):
             return "Нет квадратного коэффициента"
 
         return ""
@@ -90,7 +96,6 @@ class Equation:
     def construct_return_string(
         self,
         coefficients: AllCoefficients,
-        equation: str,
         a: float,
         b: float,
         c: float,
@@ -141,7 +146,20 @@ class Equation:
         c_term = f"{c_sign} {str(c).replace('-', '')}"
         summed_equation = f"{a_term} {b_term} {c_term} = 0"
 
-        discriminant_string = f"D = b² - 4*a*c = {b}² - 4*{parenthesize(a)}*{parenthesize(c)} = {b**2} - {parenthesize(4*a*c)} = {discriminant}"
+        coefficients_gcd = gcd(a, b, c)
+        if coefficients_gcd != 1.0:
+            a = try_to_int(a/coefficients_gcd)
+            b = try_to_int(b/coefficients_gcd)
+            c = try_to_int(c/coefficients_gcd)
+            discriminant = try_to_int(b*b - 4*a*c)
+            a_term = f"{a}x²"
+            b_term = f"{b_sign} {str(b).replace('-', '')}x"
+            c_term = f"{c_sign} {str(c).replace('-', '')}"
+            reduced_equation = f"{a_term} {b_term} {c_term} = 0"
+        else:
+            reduced_equation = ""
+
+        discriminant_string = f"D = b² - 4*a*c = {b}² - 4*{parenthesize(a)}*{parenthesize(c)} = {b*b} - {parenthesize(4*a*c)} = {discriminant}"
 
         if root2 is None:
             formula = "-b/(2*a)"
@@ -153,16 +171,16 @@ class Equation:
             root1_string = f"x₁ = {formula} = {values_formula} = {final_formula} = {root1}"
             if a_right_side != 0 or b_right_side != 0 or c_right_side != 0:
                 return_str = f"""
-                    {equation}
                     {summed_left_side} = {summed_right_side}
                     {summed_equation}
+                    {reduced_equation}
                     {discriminant_string}
                     {root1_string}
                 """
             else:
                 return_str = f"""
-                    {equation}
                     {summed_equation}
+                    {reduced_equation}
                     {discriminant_string}
                     {root1_string}
                 """
@@ -188,20 +206,20 @@ class Equation:
 
             if a_right_side != 0 or b_right_side != 0 or c_right_side != 0:
                 return_str = f"""
-                    {equation}
                     {summed_left_side} = {summed_right_side}
                     {summed_equation}
+                    {reduced_equation}
                     {discriminant_string}
                     {root1_string}
                     {root2_string}
                 """
             else:
                 return_str = f"""
-                    {equation}
                     {summed_equation}
+                    {reduced_equation}
                     {discriminant_string}
                     {root1_string}
                     {root2_string}
                 """
 
-        return "\n".join(line.strip() for line in return_str.split("\n")).strip()
+        return "\n".join(line.strip() for line in return_str.split("\n") if line.strip()).strip()
