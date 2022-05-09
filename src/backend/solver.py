@@ -1,7 +1,6 @@
 import math
 
-from .type_aliases import (AllCoefficients, BothSidesCoefficients,
-                           OneSideCoefficients, Roots)
+from .type_aliases import BothSidesCoefficients, OneSideCoefficients, Roots
 
 FUNCTIONS = {
     'sqrt': math.sqrt,
@@ -25,21 +24,12 @@ CONSTANTS = {
 
 
 class Solver:
-    def __init__(self, coefficients: AllCoefficients):
-        self.coefficients = coefficients
-
-        self.a = self.calculate_coefficient(self.coefficients[0])
-        self.b = self.calculate_coefficient(self.coefficients[1])
-        self.c = self.calculate_coefficient(self.coefficients[2])
-
-        self.discriminant = self.get_discriminant(self.a, self.b, self.c)
-
-        self.root1, self.root2 = self.get_roots(self.discriminant, self.a, self.b)
-
-    def get_discriminant(self, a: float, b: float, c: float) -> float:
+    @staticmethod
+    def get_discriminant(a: float, b: float, c: float) -> float:
         return b*b - 4*a*c
 
-    def calculate_coefficient_same_side(self, coefficients: OneSideCoefficients) -> float:
+    @staticmethod
+    def calculate_coefficient_same_side(coefficients: OneSideCoefficients) -> float:
         coefficient_sum = 0
         for coefficient in coefficients:
             sign = coefficient[0]
@@ -65,12 +55,14 @@ class Solver:
             coefficient_sum += value if sign == "+" else -value
         return coefficient_sum
 
-    def calculate_coefficient(self, coefficients: BothSidesCoefficients) -> float:
-        coefficient_left = self.calculate_coefficient_same_side(coefficients[0])
-        coefficient_right = self.calculate_coefficient_same_side(coefficients[1])
+    @staticmethod
+    def calculate_coefficient(coefficients: BothSidesCoefficients) -> float:
+        coefficient_left = Solver.calculate_coefficient_same_side(coefficients[0])
+        coefficient_right = Solver.calculate_coefficient_same_side(coefficients[1])
         return coefficient_left - coefficient_right
 
-    def get_roots(self, discriminant: float, a: float, b: float) -> Roots:
+    @staticmethod
+    def get_roots(discriminant: float, a: float, b: float) -> Roots:
         if discriminant > 0:
             root1 = (-b + discriminant**0.5)/(2*a)
             root2 = (-b - discriminant**0.5)/(2*a)

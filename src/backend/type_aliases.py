@@ -1,3 +1,11 @@
+RawTermsSide = list[str]
+RawTerms = tuple[RawTermsSide, RawTermsSide]
+
+RawCoefficient = str
+RawCoefficientSide = list[RawCoefficient]
+RawCoefficient = tuple[RawCoefficientSide, RawCoefficientSide]
+RawCoefficients = tuple[RawCoefficient, RawCoefficient, RawCoefficient]
+
 Coefficient = tuple[str, str]
 OneSideCoefficients = list[Coefficient]
 BothSidesCoefficients = tuple[OneSideCoefficients, OneSideCoefficients]

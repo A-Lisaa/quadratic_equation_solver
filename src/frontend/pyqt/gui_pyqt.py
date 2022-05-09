@@ -11,14 +11,17 @@ index = -1
 
 def p():
     win.lineEdit.insert('pi')
+    win.lineEdit.setFocus()
 
 
 def e():
     win.lineEdit.insert('e')
+    win.lineEdit.setFocus()
 
 
 def f():
     win.lineEdit.insert('phi')
+    win.lineEdit.setFocus()
 
 
 def sin():
