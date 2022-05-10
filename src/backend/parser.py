@@ -1,8 +1,10 @@
 import re
 
+from .logger import get_logger
 from .type_aliases import (AllCoefficients, RawCoefficient, RawCoefficients,
                            RawCoefficientSide, RawTerms, RawTermsSide)
 
+_logger = get_logger(__file__)
 
 class Parser:
     def __init__(self, equation: str):
@@ -11,6 +13,8 @@ class Parser:
 
         self.terms = self.get_terms(self.raw_terms)
         self.coefficients = self.get_coefficients(self.terms)
+
+        _logger.debug("Parsed %s from %s", self.coefficients, self.equation)
 
     def get_normalized_equation(self, equation: str) -> str:
         equation = equation.strip()

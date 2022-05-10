@@ -1,6 +1,9 @@
 import math
 
+from .logger import get_logger
 from .type_aliases import BothSidesCoefficients, OneSideCoefficients, Roots
+
+_logger = get_logger(__file__)
 
 FUNCTIONS = {
     'sqrt': math.sqrt,
@@ -8,11 +11,9 @@ FUNCTIONS = {
 
     'sin': math.sin,
     'tg': math.tan,
-    'sec': lambda x: 1/math.cos(x),
 
     'cos': math.cos,
     'ctg': lambda x: 1/math.tan(x),
-    'cosec': lambda x: 1/math.sin(x),
 }
 
 
@@ -53,6 +54,8 @@ class Solver:
                     value = float(value.replace(',', '.'))
 
             coefficient_sum += value if sign == "+" else -value
+
+        _logger.debug("Calculated sum of %s as %s", coefficients, coefficient_sum)
         return coefficient_sum
 
     @staticmethod

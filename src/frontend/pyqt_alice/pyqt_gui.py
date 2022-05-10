@@ -1,12 +1,14 @@
 import sys
 
-# pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module, broad-except
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from ...backend.equation import Equation
+from ...backend.logger import get_logger
 from .pyqt_mainwindow import Ui_MainWindow
 
+_logger = get_logger(__file__)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -116,7 +118,12 @@ class MainWindow(QMainWindow):
 
     def calculate_equation(self):
         equation_text = self.ui.inputField.text()
-        equation = Equation(equation_text)
+        try:
+            equation = Equation(equation_text)
+        except Exception as e:
+            _logger.critical("Exception in %s: %s", equation_text, e)
+            self.ui.outputField.setText(f"Выражение вызвало исключение: {e}")
+            return
         if equation not in self.equations:
             self.equations.append(equation)
         self.equation_index = self.equations.index(equation)
@@ -126,4 +133,7 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    app.exec()
+    try:
+        app.exec()
+    except Exception as e:
+        _logger.critical("Exception %s", e)

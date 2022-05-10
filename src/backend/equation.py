@@ -1,9 +1,12 @@
 import math
 from typing import Literal
 
+from .logger import get_logger
 from .parser import Parser
 from .solver import Solver
 from .type_aliases import AllCoefficients
+
+_logger = get_logger(__file__)
 
 
 def is_real(number: float) -> bool:
@@ -57,6 +60,17 @@ class Equation:
         self.discriminant = Solver.get_discriminant(self.a, self.b, self.c)
         self.root1, self.root2 = Solver.get_roots(self.discriminant, self.a, self.b)
 
+        _logger.info(
+            "Solved %s with a = %d, b = %d, c = %d, discriminant = %d, root1 = %d, root2 = %d",
+            self.equation,
+            self.a,
+            self.b,
+            self.c,
+            self.discriminant,
+            self.root1,
+            self.root2
+        )
+
         self.solution = self.construct_return_string(
             self.coefficients,
             self.a,
@@ -76,6 +90,7 @@ class Equation:
         self.discriminant = None
         self.root1 = None
         self.root2 = None
+        _logger.info("%s is unsolvable: %s", self.equation, reason)
 
     def get_solvability_issue(self, equation: str) -> str:
         if not equation:
