@@ -1,6 +1,6 @@
 import re
 
-from .logger import get_logger
+from ..utils.logger import get_logger
 from .type_aliases import (AllCoefficients, RawCoefficient, RawCoefficients,
                            RawCoefficientSide, RawTerms, RawTermsSide)
 

@@ -1,11 +1,11 @@
-from turtle import right
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
 from PyQt6.uic import loadUi
 
 from ...backend.equation import Equation
+from ...utils.logger import get_logger
 
+_logger = get_logger(__file__)
 app = QApplication([])
 win = loadUi("./src/frontend/pyqt/2_03.ui")
 equations = []
@@ -65,7 +65,7 @@ def minus():
 
 
 def comma():
-    win.lineEdit.insert(",")
+    win.lineEdit.insert(".")
 
 
 def left():
@@ -137,6 +137,34 @@ def y(event):
         win.x_Button.click()
     if event.key() == Qt.Key.Key_AsciiCircum:
         win.x2_Button.click()
+
+    if event.key() == Qt.Key.Key_Up:
+        win.previousButton.click()
+    if event.key() == Qt.Key.Key_Backspace:
+        win.deleteButton.click()
+    if event.key() == Qt.Key.Key_Down:
+        win.Key_Down.click()
+    if event.key() == Qt.Key.Key_Return:
+        win.calculateButton.click()
+
+    if event.key() == Qt.Key.Key_Plus:
+        win.plus_Button.click()
+    if event.key() == Qt.Key.Key_Minus:
+        win.minus_Button.click()
+    if event.key() == Qt.Key.Key_Equal:
+        win.equalsButton.click()
+    if event.key() == Qt.Key.Key_Asterisk:
+        win.multiplu_Button.click()
+    if event.key() == Qt.Key.Key_Comma:
+        win.comma_Button.click()
+    if event.key() == Qt.Key.Key_Period:
+        win.comma_Button.click()
+    if event.key() == Qt.Key.Key_ParenLeft:
+        win.left_Button.click()
+    if event.key() == Qt.Key.Key_ParenRight:
+        win.rightBracketButton.click()
+
+
     if event.key() == Qt.Key.Key_0:
         win.number0Button.click()
     if event.key() == Qt.Key.Key_1:
@@ -164,8 +192,13 @@ win.keyPressEvent = y
 
 def calc():
     global index
-    equation = Equation(win.lineEdit.text())
-    win.textBrowser.setText(equation.solution)
+    try:
+        equation = Equation(win.lineEdit.text())
+    except Exception as e:
+        _logger.critical("Exception in %s: %s", win.lineEdit.text(), e)
+        win.outputField.setText(f"Выражение вызвало исключение: {e}\nНо работа продолжается")
+        return
+    win.outputField.setText(equation.solution)
     equations.append(equation)
     index = equations.index(equation)
 
@@ -176,7 +209,7 @@ def previous_equation():
         index = index - 1
         eq = equations[index]
         win.lineEdit.setText(eq.equation)
-        win.textBrowser.setText(eq.solution)
+        win.outputField.setText(eq.solution)
 
 
 def next_equation():
@@ -185,7 +218,7 @@ def next_equation():
         index = index + 1
         eq = equations[index]
         win.lineEdit.setText(eq.equation)
-        win.textBrowser.setText(eq.solution)
+        win.outputField.setText(eq.solution)
 
 
 win.pi_Button.clicked.connect(p)

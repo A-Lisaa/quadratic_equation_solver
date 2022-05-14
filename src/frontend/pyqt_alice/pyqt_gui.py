@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from ...backend.equation import Equation
-from ...backend.logger import get_logger
+from ...utils.logger import get_logger
 from .pyqt_mainwindow import Ui_MainWindow
 
 _logger = get_logger(__file__)

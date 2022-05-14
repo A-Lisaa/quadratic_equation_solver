@@ -1,6 +1,6 @@
 import math
 
-from .logger import get_logger
+from ..utils.logger import get_logger
 from .type_aliases import BothSidesCoefficients, OneSideCoefficients, Roots
 
 _logger = get_logger(__file__)
@@ -40,13 +40,15 @@ class Solver:
                 function = value[:value.index('(')]
                 argument = value[value.index('(')+1:value.index(')')]
 
-                if '-' in argument:
-                    if argument in CONSTANTS:
-                        argument = -(CONSTANTS[argument[1:]])
+                if argument in CONSTANTS:
+                    if argument.startswith("-"):
+                        argument = -CONSTANTS[argument]
                     else:
                         argument = CONSTANTS[argument]
+                else:
+                    argument = float(argument)
 
-                value = FUNCTIONS[function](float(argument))
+                value = FUNCTIONS[function](argument)
             else:
                 if value in CONSTANTS:
                     value = CONSTANTS[value]

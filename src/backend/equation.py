@@ -1,7 +1,7 @@
 import math
 from typing import Literal
 
-from .logger import get_logger
+from ..utils.logger import get_logger
 from .parser import Parser
 from .solver import Solver
 from .type_aliases import AllCoefficients
@@ -61,14 +61,14 @@ class Equation:
         self.root1, self.root2 = Solver.get_roots(self.discriminant, self.a, self.b)
 
         _logger.info(
-            "Solved %s with a = %d, b = %d, c = %d, discriminant = %d, root1 = %d, root2 = %d",
+            "Solved %s with a = %d, b = %d, c = %d, discriminant = %d, root1 = %s, root2 = %s",
             self.equation,
             self.a,
             self.b,
             self.c,
             self.discriminant,
-            self.root1,
-            self.root2
+            str(self.root1),
+            str(self.root2)
         )
 
         self.solution = self.construct_return_string(
