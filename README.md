@@ -1,2 +1,5 @@
-# quadratic_equation_solver
-тест
+# Решатель квадратных выражений
+Запуск:
+main.py, в нем вызвать нужную функцию:
+alice - PyQt GUI, сделанный Алисой
+irishka - PyQt GUI, сделанный Иришкой
