@@ -4,16 +4,10 @@ def irishka():
     main()
 
 
-def irishka2():
-    from src.frontend.pyqt.gui2_pyqt import main
-
-    main()
-
-
 def alice():
     from src.frontend.pyqt_alice.pyqt_gui import main
 
     main()
 
 
-irishka2()
+irishka()
