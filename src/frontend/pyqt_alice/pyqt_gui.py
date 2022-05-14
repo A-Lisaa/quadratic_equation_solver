@@ -10,6 +10,7 @@ from .pyqt_mainwindow import Ui_MainWindow
 
 _logger = get_logger(__file__)
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -112,7 +113,7 @@ class MainWindow(QMainWindow):
             self.update_equation()
 
     def next_equation(self):
-        if self.equation_index < len(self.equations)-1:
+        if self.equation_index < len(self.equations) - 1:
             self.equation_index += 1
             self.update_equation()
 
@@ -122,12 +123,13 @@ class MainWindow(QMainWindow):
             equation = Equation(equation_text)
         except Exception as e:
             _logger.critical("Exception in %s: %s", equation_text, e)
-            self.ui.outputField.setText(f"Выражение вызвало исключение: {e}")
+            self.ui.outputField.setText(f"Выражение вызвало исключение: {e}\nНо работа продолжается")
             return
         if equation not in self.equations:
             self.equations.append(equation)
         self.equation_index = self.equations.index(equation)
         self.ui.outputField.setText(equation.solution)
+
 
 def main():
     app = QApplication(sys.argv)

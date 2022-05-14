@@ -6,6 +6,7 @@ from .type_aliases import (AllCoefficients, RawCoefficient, RawCoefficients,
 
 _logger = get_logger(__file__)
 
+
 class Parser:
     def __init__(self, equation: str):
         self.equation = self.get_normalized_equation(equation)
@@ -67,12 +68,8 @@ class Parser:
         return (left_terms, right_terms), (left_side, right_side)
 
     def get_terms(self, raw_terms: RawTerms) -> RawCoefficients:
-        raw_terms, quadratic_terms = self.get_term(
-            raw_terms, r"[+\-=][\w\.\(\)\*]*x²"
-        )
-        raw_terms, linear_terms = self.get_term(
-            raw_terms, r"[+\-=][\w\.\,\(\)\*]*x"
-        )
+        raw_terms, quadratic_terms = self.get_term(raw_terms, r"[+\-=][\w\.\(\)\*]*x²")
+        raw_terms, linear_terms = self.get_term(raw_terms, r"[+\-=][\w\.\,\(\)\*]*x")
         raw_terms, free_terms = self.get_term(raw_terms, r"")
 
         if raw_terms[0] or raw_terms[1]:

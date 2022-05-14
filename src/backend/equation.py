@@ -106,6 +106,9 @@ class Equation:
         if not ("x²" in equation or "x*x" in equation):
             return "Нет квадратного коэффициента"
 
+        if equation.count("(") != equation.count(")"):
+            return "Кол-во открывающих и закрывающих скобок не равно"
+
         return ""
 
     def construct_return_string(
